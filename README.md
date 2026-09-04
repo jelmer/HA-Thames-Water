@@ -14,7 +14,7 @@ It uses the [thameswaterapi](https://github.com/jelmer/thameswaterapi) Python pa
 
 The integration exposes the following entities:
 
-* **Water consumption** — the latest hourly meter read in litres, with both hourly and daily external statistics injected for use in the Energy dashboard.
+* **Water consumption** — the latest hourly meter read in litres, with hourly external statistics injected for use in the Energy dashboard.
 * **Outstanding balance** — the amount currently due on your Thames Water account, in GBP. The current balance and an `is_in_credit` flag are exposed as attributes.
 * **Tariff** — the current metered-household charges for the Thames Water region:
   * **Unit Rate** (`GBP/L`) — combined clean water + wastewater volumetric rate, per litre. Because it is denominated in litres it can be attached directly to the Energy dashboard water source as the price entity.
