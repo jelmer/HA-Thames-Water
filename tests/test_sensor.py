@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from datetime import date, datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -228,7 +227,7 @@ def _make_sensor() -> ThamesWaterSensor:
 class TestDailyFetchThrottling:
     """The daily meter usage endpoint should be hit at most once per day."""
 
-    def _run_update(
+    async def _run_update(
         self, sensor: ThamesWaterSensor, today: date, fetch_calls: list[str]
     ) -> None:
         def fake_fetch(start_dt, end_dt, granularity="H"):
@@ -240,30 +239,30 @@ class TestDailyFetchThrottling:
             patch.object(sensor, "_inject_statistics"),
             patch.object(sensor_module, "date", _frozen_date(today)),
         ):
-            asyncio.run(sensor.async_update())
+            await sensor.async_update()
 
-    def test_daily_fetched_once_per_day(self) -> None:
+    async def test_daily_fetched_once_per_day(self) -> None:
         sensor = _make_sensor()
         calls: list[str] = []
         today = date(2024, 6, 1)
 
-        self._run_update(sensor, today, calls)
-        self._run_update(sensor, today, calls)
+        await self._run_update(sensor, today, calls)
+        await self._run_update(sensor, today, calls)
 
         assert calls.count("D") == 1
         assert calls.count("H") == 2
 
-    def test_daily_fetched_again_on_new_day(self) -> None:
+    async def test_daily_fetched_again_on_new_day(self) -> None:
         sensor = _make_sensor()
         calls: list[str] = []
 
-        self._run_update(sensor, date(2024, 6, 1), calls)
-        self._run_update(sensor, date(2024, 6, 2), calls)
+        await self._run_update(sensor, date(2024, 6, 1), calls)
+        await self._run_update(sensor, date(2024, 6, 2), calls)
 
         assert calls.count("D") == 2
         assert calls.count("H") == 2
 
-    def test_daily_retried_when_previous_fetch_returned_no_data(self) -> None:
+    async def test_daily_retried_when_previous_fetch_returned_no_data(self) -> None:
         """A failed/empty daily fetch must not suppress the next attempt."""
         sensor = _make_sensor()
         calls: list[str] = []
@@ -282,12 +281,12 @@ class TestDailyFetchThrottling:
             patch.object(sensor, "_inject_statistics"),
             patch.object(sensor_module, "date", _frozen_date(today)),
         ):
-            asyncio.run(sensor.async_update())
-            asyncio.run(sensor.async_update())
+            await sensor.async_update()
+            await sensor.async_update()
 
         assert calls.count("D") == 2
 
-    def test_daily_retried_when_previous_fetch_raised(self) -> None:
+    async def test_daily_retried_when_previous_fetch_raised(self) -> None:
         sensor = _make_sensor()
         calls: list[str] = []
         today = date(2024, 6, 1)
@@ -307,7 +306,7 @@ class TestDailyFetchThrottling:
             patch.object(sensor, "_inject_statistics"),
             patch.object(sensor_module, "date", _frozen_date(today)),
         ):
-            asyncio.run(sensor.async_update())
-            asyncio.run(sensor.async_update())
+            await sensor.async_update()
+            await sensor.async_update()
 
         assert calls.count("D") == 2
