@@ -63,10 +63,10 @@ class ThamesWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if choosing:
             if user_input is None:
                 return self._show_account_form(account_numbers)
+            # The meter endpoints answer for the account whose page was last
+            # visited. Assigning marks the session as needing that visit
+            # again, and the next data call makes it.
             self._client.account_number = int(user_input["account_number"])
-            # The meter endpoints answer for the account whose page was
-            # last visited, and the account just changed.
-            await self.hass.async_add_executor_job(self._client._visit_meter_page)
 
         # `get_account` names the account in a header taken from
         # `account_number`, so it answers for whichever one is set.
@@ -137,4 +137,6 @@ class ThamesWaterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     def _authenticate(username: str, password: str) -> ThamesWater:
         """Authenticate with Thames Water (blocking, run in executor)."""
-        return ThamesWater(email=username, password=password)
+        client = ThamesWater(email=username, password=password)
+        client.authenticate()
+        return client
